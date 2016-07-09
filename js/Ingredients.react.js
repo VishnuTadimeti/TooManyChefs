@@ -60,7 +60,7 @@ var Ingredients = React.createClass({
     return (
       <div className="padTop row">
         <div className="col-sm-6 col-xs-12">
-          <h5>{this.props.leftName}</h5>
+          <h5><u>{this.props.leftName}</u></h5>
           <ul className="ingredients-step">
             {left.map((ing, i) =>
               <li key={i}><code><span className="input">[{ing.key}]</span> {ing.name}</code></li>
@@ -68,7 +68,7 @@ var Ingredients = React.createClass({
           </ul>
         </div>
         <div className="col-sm-6 col-xs-12">
-          <h5>{this.props.rightName}</h5>
+          <h5><u>{this.props.rightName}</u></h5>
           <ul className="ingredients-step">
             {right.map((ing, i) =>
               <li key={i}><code><span className="input">[{ing.key}]</span> {ing.name}</code></li>

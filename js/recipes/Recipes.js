@@ -27,6 +27,7 @@ module.exports = [
     rating: 1,
     recipes: [Oatmeal, Cereal, ScrambledEggs, Pancakes],
     soloRecipes: [Oatmeal, Cereal],
+    tutorial: true,
   },
   {
     name: 'American Diner',

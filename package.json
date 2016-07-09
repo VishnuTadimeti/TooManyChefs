@@ -5,15 +5,16 @@
     "bootstrap": "~3.3.6",
     "chroma-js": "~1.1.1",
     "classnames": "~2.2.3",
+    "firebase": "^3.0.3",
     "jquery": "~2.2.3",
     "lodash": "~4.11.1",
+    "rc-progress": "~1.0.4",
     "react": "~15.0.1",
     "react-addons-css-transition-group": "~15.0.1",
     "react-addons-pure-render-mixin": "~15.0.1",
     "react-dom": "~15.0.1",
     "react-localstorage": "~0.2.9",
-    "react-timer-mixin": "~0.13.3",
-    "rc-progress": "~1.0.4"
+    "react-timer-mixin": "~0.13.3"
   },
   "devDependencies": {
     "babel-plugin-transform-object-rest-spread": "^6.6.5",
@@ -26,7 +27,7 @@
   },
   "scripts": {
     "start": "watchify -o js/bundle.js -v -d js/main.js",
-    "build": "NODE_ENV=production browserify js/main.js | uglifyjs -mc warnings=false > js/bundle.js"
+    "build": "NODE_ENV=production browserify js/main.js | uglifyjs -mc warnings=false > js/bundle.js && uglifycss css/style.css > css/bundle.css"
   },
   "babel": {
     "presets": [

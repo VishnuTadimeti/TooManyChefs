@@ -16,7 +16,8 @@ var MashedPotatoes = {
     {
       pretext: <span>Mash the potatoes <b className="fireRed blink">as fast as possible</b>!<br/></span>,
       type: 'mash',
-      instruction: 'm',
+      // Random letter from a-z
+      instruction: () => String.fromCharCode(97 + Math.floor(Math.random() * 26)),
       mashCount: 0, // count up
       timer: 10,
       onTimeout: function(progress) {

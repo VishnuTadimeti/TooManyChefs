@@ -1,16 +1,26 @@
+body {
+  font-family: 'Roboto Mono', monospace;
+  font-size: 14px;
+  background-color: #edf4ff;
+}
+
 h1, h2, h3 {
   font-family: 'Cabin', sans-serif;
 }
 
-body {
-  font-family: 'Roboto Mono', monospace;
-  font-size: 15px;
-  background-color: #edf4ff;
+h3 {
+  font-size: 1.4em;
+}
+h4 {
+  font-size: 1.2em;
+}
+h5 {
+  font-size: 1em;
 }
 
 code {
   color: #659cf3;
-  font-size: 15px;
+  font-size: 1em;
   padding: 0;
   background-color: inherit;
   border-radius: 0;
@@ -36,7 +46,7 @@ code > .correct {
 
 .vcenter {
   margin-top: 20%;
-  margin-bottom: 20px;
+  margin-bottom: 1.25em;
   transition: margin 250ms ease;
 }
 .vcenter.vtop {
@@ -52,9 +62,17 @@ code > .correct {
 }
 
 ul.ingredients {
-  columns: 2;
-  -webkit-columns: 2;
-  -moz-columns: 2;
+  -moz-column-count: 2;
+  -moz-column-gap: 15px;
+  -webkit-column-count: 2;
+  -webkit-column-gap: 15px;
+  column-count: 2;
+  column-gap: 10px;
+  list-style-position: inside;
+  padding-left: 20px;
+}
+ul.ingredients > li {
+  font-size: 0.9em;
 }
 
 ul.ingredients-step > li {
@@ -64,10 +82,14 @@ ul.ingredients-step > li {
 .chefBox {
   margin: 10px auto;
   min-height: 200px;
-  width: 100%;
-  padding: 10px 20px;
+  padding: 10px;
   transition: background-color 250ms ease;
 }
+
+.chefBox > h4.chefDesc {
+  margin-bottom: 0;
+}
+
 
 /* Transitions */
 .fade-enter {
@@ -87,16 +109,16 @@ ul.ingredients-step > li {
 }
 
 .padLeft {
-  padding-left: 20px;
+  padding-left: 1.5em;
 }
 .padLeft10 {
-  padding-left: 10px;
+  padding-left: 0.75em;
 }
 .padRight10 {
-  padding-right: 10px;
+  padding-right: 0.75em;
 }
 .padTop {
-  padding-top: 10px;
+  padding-top: 0.75em;
 }
 
 .fireRed {
@@ -151,7 +173,7 @@ ul.ingredients-step > li {
 }
 
 .recipeName {
-  margin-top: -30px;
+  margin-top: -1.3em;
 }
 
 .dot {
@@ -172,7 +194,35 @@ ul.ingredients-step > li {
 }
 
 .meal {
-  height: 250px;
+  height: 16em;
+}
+
+.mealInfo {
+  display: inline-block;
+  min-width: 200px;
+  max-width: 300px;
+  margin: 0 50px;
+  vertical-align: top;
+}
+
+.leaderboard th, .leaderboard td {
+  text-align: left;
+}
+.leaderboard th:last-child, .leaderboard td:last-child {
+  text-align: right;
+}
+
+.leaderboard.table {
+  margin-bottom: 0;
+}
+
+.leaderboard.table > thead > tr > th {
+  border-bottom: none;
+}
+.leaderboard.table > tbody > tr > th,
+.leaderboard.table > tbody > tr > td {
+  border-top: none;
+  padding: 1px 8px;
 }
 
 .report {
@@ -181,9 +231,9 @@ ul.ingredients-step > li {
   top: 50%;
   left: 50%;
   width: 400px;
-  height: 350px;
+  height: 320px;
   margin-left: -200px;
-  margin-top: -175px;
+  margin-top: -160px;
   padding: 15px 10px;
   border: 1px solid #659cf3;
   border-radius: 10px;
@@ -262,3 +312,66 @@ blockquote > footer {
   100% { opacity: 1; }
 }
 
+/* Phones */
+@media screen and (max-width: 768px) {
+  body {
+    font-size: 12px;
+  }
+  .vcenter {
+    margin-top: 15%;
+  }
+  .vcenter.vtop {
+    margin-top: 8%;
+  }
+  .padLeft {
+    padding-left: 0;
+  }
+  .padRight {
+    padding-right: 0;
+  }
+}
+
+/* Tablets */
+@media screen and (min-width: 769px) and (max-width: 992px) {
+  body {
+    font-size: 13px;
+  }
+  .padLeft {
+    padding-left: 0.75em;
+  }
+  .padRight {
+    padding-right: 0.75em;
+  }
+}
+
+/* Small laptops */
+@media screen and (min-width: 993px) and (max-width: 1200px) {
+  body {
+    font-size: 14px;
+  }
+  .padLeft {
+    padding-left: 0.75em;
+  }
+  .padRight {
+    padding-right: 0.75em;
+  }
+}
+
+/* Large laptops */
+@media screen and (min-width: 1201px) {
+  body {
+    font-size: 15px;
+  }
+  .chefBox {
+    padding: 10px 20px;
+  }
+  .chefBox > h4.chefDesc {
+    margin-bottom: 5px;
+  }
+  .recipeName {
+    margin-top: -1.6em;
+  }
+  ul.ingredients > li {
+    font-size: 1em;
+  }
+}

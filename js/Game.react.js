@@ -10,8 +10,11 @@ var cx = require('classnames');
 var Audio = require('./Audio.js');
 var CapsLock = require('./CapsLock.react.js');
 var ChefBox = require('./ChefBox.react.js');
+var Firebase = require('./FirebaseConfig.js');
 var RecipeSelect = require('./RecipeSelect.react.js');
+var TextInput = require('./TextInput.react.js');
 var Inst = require('./Instruction.react.js');
+var Leaderboard = require('./Leaderboard.react.js');
 var LoadingQuote = require('./LoadingQuote.react.js');
 var ModeSelect = require('./ModeSelect.react.js');
 var Recipes = require('./recipes/Recipes.js');
@@ -42,7 +45,8 @@ var Game = React.createClass({
       fadeTitle: false,
       gameOver: false,
       report: null,
-      newRecord: 0,
+      record: 0,
+      newRecord: false,
       saveData: {},
     };
   },
@@ -105,7 +109,7 @@ var Game = React.createClass({
     // Send Google Analytics event
     ga('send', 'event', 'Game', 'play', meal.name);
 
-    // Wait a random amount of time before loading (8-10s)
+    // Wait a random amount of time before loading (7-9s)
     this.setTimeout(() => {
       this.setState({
         gameState: 'started',
@@ -114,9 +118,10 @@ var Game = React.createClass({
         gameOver: false,
         chefs: chefs.map(_.clone),
         report: null,
-        newRecord: null,
+        record: 0,
+        newRecord: false,
       });
-    }, 500 + _.random(7500, 9000));
+    }, 500 + _.random(7000, 9000));
   },
 
   onChooseMode: function(singlePlayer) {
@@ -211,21 +216,21 @@ var Game = React.createClass({
     });
   },
 
-  onComplete: function(winner, newRecord) {
+  onComplete: function(winner, record) {
     var completed = this.state.completed + 1;
     var chefs = this.state.chefs;
     chefs[winner].completed = true;
     this.setState({
       chefs: chefs,
       completed: completed,
-      newRecord: newRecord,
+      record: record,
     });
 
     if (completed === this.state.chefs.length) {
       // Send Google Analytics event
       Audio.stopAllSounds();
-      ga('send', 'event', 'Game', 'win', Recipes[this.state.meal].name, newRecord);
-      this.saveData(true, newRecord);
+      ga('send', 'event', 'Game', 'win', Recipes[this.state.meal].name, record);
+      this.saveData();
       return <p>Type <Inst onComplete={this.onReport}>report</Inst> to view your results.</p>;
     }
     return null;
@@ -235,18 +240,42 @@ var Game = React.createClass({
     this.setState({report: this.renderReport()});
   },
 
-  saveData: function(completed, newRecord) {
+  /* Save to localStorage */
+  saveData: function() {
     // NOTE: for legacy reasons, the record is saved as "bestTime"
-    // but it holds either times and counts
+    // but it holds either times or counts
     var meal = Recipes[this.state.meal];
-    var recordCmp = meal.record === 'count' ? Math.max : Math.min;
+    var mode = this.state.singlePlayer ? 'solo' : 'party';
     var saveData = this.state.saveData;
-    var mealData = _.get(saveData, meal.key, {});
-    mealData.completed = completed;
-    mealData.bestTime = _.has(mealData, 'bestTime')
-      ? recordCmp(newRecord, mealData.bestTime) : newRecord;
-    saveData[meal.key] = mealData;
-    this.setState({saveData: saveData});
+    var mealData = _.get(saveData, [mode, meal.key], {});
+    mealData.completed = true;
+    var newRecord = !_.has(mealData, 'bestTime') || (meal.record === 'count'
+        ? this.state.record > mealData.bestTime
+        : this.state.record < mealData.bestTime);
+    if (newRecord) {
+      mealData.bestTime = this.state.record;
+    }
+
+    _.set(saveData, [mode, meal.key], mealData);
+    this.setState({
+      newRecord: newRecord,
+      saveData: saveData,
+    });
+  },
+
+  /* Save to Firebase (global leaderboard) */
+  updateLeaderboard: function(name) {
+    var meal = Recipes[this.state.meal];
+    if (meal.tutorial) {
+      return;
+    }
+
+    var mode = this.state.singlePlayer ? 'solo' : 'party';
+    var newRecord = this.state.saveData[mode][meal.key].bestTime;
+    var ref = Firebase.database().ref('leaderboard/' + mode + '/' + meal.key);
+    ref.push({name: name, bestTime: newRecord}).setPriority(newRecord);
+
+    this.setState({report: this.renderReport(true)});
   },
 
   onRenderMode: function() {
@@ -352,7 +381,7 @@ var Game = React.createClass({
   renderCredits: function() {
     return (
       <div key="credits" className="padTop">
-        <br/><br/>
+        <br/>
         <h4>Credits</h4>
         <p>
           <b>Chef de cuisine</b>: Ivan Wang (design, programming)<br/>
@@ -360,6 +389,9 @@ var Game = React.createClass({
           <b>Culinary consultant</b>: Anshu Bansal<br/>
           <b>Café jazz</b>: <i>Fortaleza</i> by Topher Mohr and Alex Elena
         </p>
+        <br/>
+        <h4>Contact</h4>
+        <p><b>Email</b>: <a href="mailto:chef@toomanychefs.party" target="_top">chef@toomanychefs.party</a></p>
         <br/><br/>
         <p>Type <Inst onComplete={_.partial(this.setStateDelay, 'title')}>back</Inst> to return to title</p>
       </div>
@@ -392,30 +424,50 @@ var Game = React.createClass({
     );
   },
 
-  renderReport: function() {
+  renderReport: function(withInstructions) {
     var meal = Recipes[this.state.meal];
-    var mealData = _.get(this.state.saveData, meal.key);
+    var mode = this.state.singlePlayer ? 'solo' : 'party';
+    var mealData = _.get(this.state.saveData, [mode, meal.key]);
     var won = this.state.completed === this.state.chefs.length;
-    var newRecord = won && (meal.record === 'count'
-      ? this.state.newRecord >= mealData.bestTime
-      : this.state.newRecord <= mealData.bestTime);
+    var newRecord = this.state.newRecord;
 
     var completeText = won
       ? <b className="green">SUCCESS {newRecord && '- NEW RECORD'}</b>
       : <b className="fireRed">FAILURE</b>;
-    var renderTime = function(time) {
-      var min = (time / 60) << 0; // floor
-      var sec = time % 60;
-      return _.padStart(min, 2, '0') + ':' + _.padStart(sec, 2, '0');
-    };
     var recordText = won && (meal.record === 'count'
-      ? <p>Count: {this.state.newRecord}</p>
-      : <p>Cook Time: {renderTime(this.state.newRecord)}</p>);
+      ? <p>Count: {this.state.record}</p>
+      : <p>Cook Time: {Leaderboard.renderTime(this.state.record)}</p>);
 
-    if (newRecord) {
-      Audio.playSE('newrecord');
-    } else if (won) {
-      Audio.playSE('success');
+    if (!withInstructions) {
+      if (newRecord) {
+        Audio.playSE('newrecord');
+      } else if (won) {
+        Audio.playSE('success');
+      }
+    }
+
+    var instructions = (
+      <div>
+        <p>Type <Inst onComplete={this.onStartGame}>replay</Inst> to restart the meal.</p>
+        <p>Type <Inst onComplete={_.partial(this.setStateDelay, 'menu')}>back</Inst> to return to the menu.</p>
+        <div id="fb-share" className="center padTop">
+          <div className="fb-share-button" data-href="http://www.toomanychefs.party" data-layout="button_count" data-mobile-iframe="false" />
+        </div>
+      </div>
+    );
+
+    var typeName = (
+      <div>
+        <p>Name your {this.state.singlePlayer ? 'chef' : 'restaurant'} (press Enter to submit):</p>
+        <TextInput onComplete={this.updateLeaderboard}
+                   maxLength={20}
+                   allowEnter allowBackspace />
+      </div>
+    );
+
+    // HACK: Re-render FB share button after report renders
+    if (typeof(FB) !== 'undefined' && _.has(FB, 'XFBML.parse')) {
+      this.setTimeout(() => FB.XFBML.parse(document.getElementById('fb-share')), 200);
     }
 
     return (
@@ -426,8 +478,7 @@ var Game = React.createClass({
         {this.state.chefs.map((r, i) =>
           <div key={i} className={cx({green: r.completed, fireRed: !r.completed})}>{r.name}</div>)}
         <br/>
-        <p>Type <Inst onComplete={this.onStartGame}>replay</Inst> to restart the meal.</p>
-        <p>Type <Inst onComplete={_.partial(this.setStateDelay, 'menu')}>back</Inst> to return to the menu.</p>
+        {withInstructions || !newRecord || meal.tutorial ? instructions : typeName}
       </div>
     );
   },

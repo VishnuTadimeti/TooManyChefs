@@ -451,7 +451,7 @@ var ChefBox = React.createClass({
     return (
       <div className={sizeClass}>
         <div className={cx('chefBox', this.state.backgroundClass)} style={style}>
-          <h4>{this.props.chefName} {this.renderLives()} {this.renderTime()}</h4>
+          <h4 className="chefDesc">{this.props.chefName} {this.renderLives()} {this.renderTime()}</h4>
           <b className="recipeName pull-right">{this.props.recipe.name}</b>
           {this.renderTimer()}
           <div className="padTop">

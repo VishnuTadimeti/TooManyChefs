@@ -14,7 +14,8 @@ $(document).unbind('keydown').on('keydown', function(e) {
   e = e || event;
   var keyCode = e.which || e.keyCode || 0;
 
-  if (keyCode === 8) {
+  // Check for backspace, space, and arrow keys
+  if ([8, 32, 37, 38, 39, 40].indexOf(keyCode) >= 0) {
     e.preventDefault();
   } else if (e.ctrlKey && (keyCode === 84 || keyCode === 85)) {
     e.preventDefault();
